@@ -1,188 +1,64 @@
-/**
- * Line chart component for displaying time series data.
- * Each selected migration period represents a window (5yr or 10yr),
- * so the chart plots both endpoints for demographic data.
- */
+// simple line chart for demographic time series in the right sidebar
+
 export default function LineChart({ data, label, unit, color, selectedPeriods, intervalMode }) {
-  if (!data || Object.keys(data).length === 0) {
-    return (
-      <div style={{ padding: "12px 0", color: "#8a857a", fontSize: 13, fontStyle: "italic" }}>
-        No {label.toLowerCase()} data available
-      </div>
-    );
+  if (!data || !Object.keys(data).length) {
+    return <div style={{ padding: "12px 0", color: "#8a857a", fontSize: 13, fontStyle: "italic" }}>No {label.toLowerCase()} data available</div>;
   }
 
-  // Expand each selected period into its start and end year
+  // each selected period is a window — show both start and end year for demographics
   const step = intervalMode === "10yr" ? 10 : 5;
   const yearSet = new Set();
   for (const p of selectedPeriods) {
     yearSet.add(p);
-    yearSet.add(String(parseInt(p) + step));
+    yearSet.add(String(+p + step));
   }
-
-  // Sort and filter to only years that have data
-  const activeYears = Array.from(yearSet)
-    .sort((a, b) => parseInt(a) - parseInt(b))
-    .filter(y => data[y] != null);
-
-  if (activeYears.length === 0) {
-    return (
-      <div style={{ padding: "12px 0", color: "#8a857a", fontSize: 13, fontStyle: "italic" }}>
-        No {label.toLowerCase()} data for selected periods
-      </div>
-    );
+  const years = [...yearSet].sort((a, b) => +a - +b).filter(y => data[y] != null);
+  if (!years.length) {
+    return <div style={{ padding: "12px 0", color: "#8a857a", fontSize: 13, fontStyle: "italic" }}>No {label.toLowerCase()} data for selected periods</div>;
   }
 
   const W = 370, H = 140;
-  const PAD = { top: 22, right: 16, bottom: 26, left: 38 };
-  const plotW = W - PAD.left - PAD.right;
-  const plotH = H - PAD.top - PAD.bottom;
+  const pad = { t: 22, r: 16, b: 26, l: 38 };
+  const pw = W - pad.l - pad.r;
+  const ph = H - pad.t - pad.b;
 
-  const values = activeYears.map(y => data[y]);
-  const minVal = Math.min(...values);
-  const maxVal = Math.max(...values);
-  const range = maxVal - minVal || 1;
-  const yMin = Math.max(0, minVal - range * 0.1);
-  const yMax = maxVal + range * 0.1;
+  const vals = years.map(y => data[y]);
+  const lo = Math.min(...vals), hi = Math.max(...vals), span = hi - lo || 1;
+  const yLo = Math.max(0, lo - span * 0.1), yHi = hi + span * 0.1;
 
-  // X scale: position years proportionally by actual year value
-  const yearNums = activeYears.map(y => parseInt(y));
-  const xMin = yearNums[0];
-  const xMax = yearNums[yearNums.length - 1];
-  const xRange = xMax - xMin || 1;
+  const nums = years.map(Number);
+  const xLo = nums[0], xHi = nums[nums.length - 1], xSpan = xHi - xLo || 1;
+  const xOf = n => years.length === 1 ? pad.l + pw / 2 : pad.l + ((n - xLo) / xSpan) * pw;
+  const yOf = v => pad.t + ph - ((v - yLo) / (yHi - yLo)) * ph;
 
-  const getX = (yearNum) => {
-    if (activeYears.length === 1) return PAD.left + plotW / 2;
-    return PAD.left + ((yearNum - xMin) / xRange) * plotW;
-  };
+  const pts = years.map(y => ({ x: xOf(+y), y: yOf(data[y]), v: data[y], yr: y }));
+  const linePath = pts.map((p, i) => (i ? "L" : "M") + p.x + "," + p.y).join(" ");
+  const areaPath = linePath + `L${pts[pts.length - 1].x},${pad.t + ph}L${pts[0].x},${pad.t + ph}Z`;
 
-  const getY = (val) => {
-    return PAD.top + plotH - ((val - yMin) / (yMax - yMin)) * plotH;
-  };
+  const ticks = Array.from({ length: 5 }, (_, i) => {
+    const v = yLo + (i / 4) * (yHi - yLo);
+    return { v, y: yOf(v) };
+  });
 
-  // Build points
-  const points = activeYears.map(y => ({
-    x: getX(parseInt(y)),
-    y: getY(data[y]),
-    val: data[y],
-    label: y
-  }));
-
-  // SVG line path
-  const linePath = points.map((pt, i) =>
-    (i === 0 ? "M" : "L") + `${pt.x},${pt.y}`
-  ).join(" ");
-
-  // Area path
-  const areaPath = linePath
-    + ` L${points[points.length - 1].x},${PAD.top + plotH}`
-    + ` L${points[0].x},${PAD.top + plotH} Z`;
-
-  // Y-axis ticks
-  const tickCount = 4;
-  const yTicks = [];
-  for (let i = 0; i <= tickCount; i++) {
-    const val = yMin + (i / tickCount) * (yMax - yMin);
-    yTicks.push({ val, y: getY(val) });
-  }
+  const fmt = v => v < 10 ? v.toFixed(1) : Math.round(v).toString();
 
   return (
     <div style={{ marginBottom: 16 }}>
-      <div style={{
-        fontSize: 12,
-        color: "#8a857a",
-        marginBottom: 6,
-        fontFamily: "'Source Sans 3', sans-serif",
-        letterSpacing: "0.03em",
-        textTransform: "uppercase"
-      }}>
+      <div style={{ fontSize: 12, color: "#8a857a", marginBottom: 6, fontFamily: "'Source Sans 3', sans-serif", letterSpacing: "0.03em", textTransform: "uppercase" }}>
         {label}{unit ? ` (${unit})` : ""}
       </div>
       <svg width={W} height={H} style={{ display: "block" }}>
-        {/* Horizontal grid lines */}
-        {yTicks.map((tick, i) => (
-          <line
-            key={i}
-            x1={PAD.left}
-            x2={W - PAD.right}
-            y1={tick.y}
-            y2={tick.y}
-            stroke="#e8e4dc"
-            strokeWidth={0.5}
-          />
-        ))}
+        {ticks.map((t, i) => <line key={i} x1={pad.l} x2={W - pad.r} y1={t.y} y2={t.y} stroke="#e8e4dc" strokeWidth={0.5} />)}
+        {ticks.map((t, i) => <text key={"t" + i} x={pad.l - 6} y={t.y + 3} textAnchor="end" fontSize={8} fill="#a9a49a" fontFamily="'Source Sans 3'">{fmt(t.v)}</text>)}
 
-        {/* Y-axis labels */}
-        {yTicks.map((tick, i) => (
-          <text
-            key={`yl-${i}`}
-            x={PAD.left - 6}
-            y={tick.y + 3}
-            textAnchor="end"
-            fontSize={8}
-            fill="#a9a49a"
-            fontFamily="'Source Sans 3', sans-serif"
-          >
-            {tick.val < 10 ? tick.val.toFixed(1) : Math.round(tick.val)}
-          </text>
-        ))}
+        {pts.length > 1 && <path d={areaPath} fill={color} opacity={0.08} />}
+        {pts.length > 1 && <path d={linePath} fill="none" stroke={color} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />}
 
-        {/* Area fill */}
-        {points.length > 1 && (
-          <path
-            d={areaPath}
-            fill={color}
-            opacity={0.08}
-          />
-        )}
-
-        {/* Line */}
-        {points.length > 1 && (
-          <path
-            d={linePath}
-            fill="none"
-            stroke={color}
-            strokeWidth={2}
-            strokeLinejoin="round"
-            strokeLinecap="round"
-          />
-        )}
-
-        {/* Data points and labels */}
-        {points.map((pt) => (
-          <g key={pt.label}>
-            <circle
-              cx={pt.x}
-              cy={pt.y}
-              r={3.5}
-              fill="#fff"
-              stroke={color}
-              strokeWidth={2}
-            />
-            {/* Value label above point */}
-            <text
-              x={pt.x}
-              y={pt.y - 8}
-              textAnchor="middle"
-              fontSize={9}
-              fill="#3d3a35"
-              fontFamily="'Source Sans 3', sans-serif"
-              fontWeight={600}
-            >
-              {pt.val < 10 ? pt.val.toFixed(1) : Math.round(pt.val)}
-            </text>
-            {/* Year label below */}
-            <text
-              x={pt.x}
-              y={H - 6}
-              textAnchor="middle"
-              fontSize={8}
-              fill="#3d3a35"
-              fontFamily="'Source Sans 3', sans-serif"
-              fontWeight={400}
-            >
-              {"'" + pt.label.slice(2)}
-            </text>
+        {pts.map(p => (
+          <g key={p.yr}>
+            <circle cx={p.x} cy={p.y} r={3.5} fill="#fff" stroke={color} strokeWidth={2} />
+            <text x={p.x} y={p.y - 8} textAnchor="middle" fontSize={9} fill="#3d3a35" fontFamily="'Source Sans 3'" fontWeight={600}>{fmt(p.v)}</text>
+            <text x={p.x} y={H - 6} textAnchor="middle" fontSize={8} fill="#3d3a35" fontFamily="'Source Sans 3'">{"'" + p.yr.slice(2)}</text>
           </g>
         ))}
       </svg>

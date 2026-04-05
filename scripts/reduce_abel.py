@@ -1,15 +1,16 @@
 """
-Reduce gf_imr.csv — keep ALL sources for both 5-year and 10-year intervals.
+Reduce gf_imr.csv — keep only the two stock/demo combos used by the app.
 
-Keeps: sex=b, interval=5 or 10, year0 1960-2010, ALL stock/demo combos
+Keeps: sex=b, interval=5 or 10, year0 1960-2010
+       wb11 + wpp2015 (World Bank source)
+       un15 + wpp2015 (UN 2015 source)
 
 USAGE:  python reduce_abel.py gf_imr.csv
-OUTPUT: gf_imr_reduced.csv (contains both 5-year and 10-year data)
+OUTPUT: gf_imr_reduced.csv
 """
 
 import pandas as pd
-import sys
-import os
+import sys, os
 
 KEEP_YEARS = {1960, 1965, 1970, 1975, 1980, 1985, 1990, 1995, 2000, 2005, 2010}
 
@@ -29,17 +30,22 @@ def main():
         total += len(chunk)
         print(f"  Read {total:,} rows...", end="\r")
 
-        chunk = chunk[
+        mask = (
             (chunk["sex"] == "b") &
             (chunk["interval"].isin([5, 10])) &
-            (chunk["year0"].isin(KEEP_YEARS))
-        ]
+            (chunk["year0"].isin(KEEP_YEARS)) &
+            (
+                ((chunk["stock"] == "wb11") & (chunk["demo"] == "wpp2015")) |
+                ((chunk["stock"] == "un15") & (chunk["demo"] == "wpp2015"))
+            )
+        )
+        filtered = chunk[mask]
 
-        if len(chunk) > 0:
-            chunks.append(chunk)
-            kept += len(chunk)
+        if len(filtered) > 0:
+            chunks.append(filtered)
+            kept += len(filtered)
 
-    print(f"\n  Total rows: {total:,}")
+    print(f"\n  Total rows read: {total:,}")
     print(f"  Kept: {kept:,}")
 
     if not chunks:
@@ -48,19 +54,18 @@ def main():
 
     df = pd.concat(chunks, ignore_index=True)
 
-    combos = df.groupby(["stock", "demo", "interval"]).size().reset_index(name="n")
-    print(f"\n  All stock/demo/interval combos:")
-    for _, r in combos.iterrows():
-        print(f"    {r['stock']}/{r['demo']}/interval={r['interval']}: {r['n']:,} rows")
+    print(f"\n  Sources:")
+    for (stock, demo), group in df.groupby(["stock", "demo"]):
+        n5 = len(group[group["interval"] == 5])
+        n10 = len(group[group["interval"] == 10])
+        print(f"    {stock} + {demo}: {n5:,} (5yr) + {n10:,} (10yr)")
 
     print(f"  Years: {sorted(df['year0'].unique())}")
-    print(f"  5-year rows: {len(df[df['interval'] == 5]):,}")
-    print(f"  10-year rows: {len(df[df['interval'] == 10]):,}")
 
-    out_file = "gf_imr_reduced.csv"
-    df.to_csv(out_file, index=False)
-    size_mb = os.path.getsize(out_file) / (1024 * 1024)
-    print(f"\n  Saved: {out_file} ({len(df):,} rows, {size_mb:.1f} MB)")
+    out = "gf_imr_reduced.csv"
+    df.to_csv(out, index=False)
+    size_mb = os.path.getsize(out) / (1024 * 1024)
+    print(f"\n  Saved: {out} ({len(df):,} rows, {size_mb:.1f} MB)")
 
 if __name__ == "__main__":
     main()
