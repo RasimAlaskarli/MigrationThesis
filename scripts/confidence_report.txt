@@ -1,0 +1,58 @@
+=================================================================
+  CONFIDENCE REPORT (per-period, per-corridor)
+  Method: compare IMS 2024 against closest of WB 2011 / UN 2015
+  Reliable < 5x | Uncertain 5-10x | Unreliable >= 10x
+  Min flow to tag: 100
+=================================================================
+
+=================================================================
+  5-YEAR INTERVALS
+=================================================================
+
+  Corridor-period counts (across all overlap years):
+    reliable       13593  (78.5%)
+    uncertain       1529  (8.8%)
+    unreliable      2199  (12.7%)
+    TOTAL          17321
+
+  Flow-weighted breakdown:
+    reliable         147,995,147  (85.1%)
+    uncertain          8,860,383  (5.1%)
+    unreliable        17,018,225  (9.8%)
+    TOTAL            173,873,755
+
+  Summary: 85.1% of migration flow is reliable, 14.9% is flagged
+
+  Per-year flagged corridors:
+    1990:  799 flagged  (uncertain=326, unreliable=473)
+    1995:  924 flagged  (uncertain=377, unreliable=547)
+    2000:  969 flagged  (uncertain=411, unreliable=558)
+    2005: 1036 flagged  (uncertain=415, unreliable=621)
+
+  Flagged corridor-periods: 3728 → flagged_corridors_5yr.csv
+  Patched: migrationData_5yr.json (3.5 MB)
+
+=================================================================
+  10-YEAR INTERVALS
+=================================================================
+
+  Corridor-period counts (across all overlap years):
+    reliable        9556  (77.8%)
+    uncertain       1029  (8.4%)
+    unreliable      1698  (13.8%)
+    TOTAL          12283
+
+  Flow-weighted breakdown:
+    reliable         144,516,690  (83.0%)
+    uncertain          8,234,676  (4.7%)
+    unreliable        21,337,185  (12.3%)
+    TOTAL            174,088,551
+
+  Summary: 83.0% of migration flow is reliable, 17.0% is flagged
+
+  Per-year flagged corridors:
+    1990: 1344 flagged  (uncertain=484, unreliable=860)
+    2000: 1383 flagged  (uncertain=545, unreliable=838)
+
+  Flagged corridor-periods: 2727 → flagged_corridors_10yr.csv
+  Patched: migrationData_10yr.json (2.1 MB)
