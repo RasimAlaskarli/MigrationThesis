@@ -22,11 +22,7 @@ export function PeriodSelector({
   onToggleAll,
   intervalMode,
   onIntervalChange,
-  periods,
-  stockSource,
-  onStockSourceChange,
-  sourceLabels,
-  availableSources
+  periods
 }) {
   const allOn = selectedPeriods.size === periods.length;
 
@@ -38,36 +34,8 @@ export function PeriodSelector({
     fontFamily: "'Source Sans 3', sans-serif", transition: "all 0.15s"
   });
 
-  const sourceButtonText = {
-    wb: "WB 2011",
-    un: "UN 2015",
-    ims: "IMS 2024"
-  };
-
-  const sourceDescriptions = {
-    wb: sourceLabels?.wb || "WB 2011 stock tables",
-    un: sourceLabels?.un || "UN 2015 stock tables",
-    ims: sourceLabels?.ims || "IMS 2024"
-  };
-
   return (
     <div style={{ position: "absolute", bottom: 20, left: "50%", transform: "translateX(-50%)", display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
-      {availableSources?.length > 0 && (
-        <div style={{ display: "flex", gap: 2, background: "#fff", padding: 3, borderRadius: 6, boxShadow: "0 1px 4px rgba(0,0,0,0.08)", border: "1px solid #e0dbd3", alignItems: "center", flexWrap: "wrap", justifyContent: "center" }}>
-          <span style={{ fontSize: 9, color: "#8a857a", padding: "3px 6px", alignSelf: "center" }}>Source:</span>
-          {availableSources.map(src => (
-            <button
-              key={src}
-              title={sourceDescriptions[src]}
-              onClick={() => onStockSourceChange(src)}
-              style={toggle(stockSource === src)}
-            >
-              {sourceButtonText[src]}
-            </button>
-          ))}
-        </div>
-      )}
-
       <div style={{ display: "flex", gap: 2, background: "#fff", padding: 4, borderRadius: 8, boxShadow: "0 1px 6px rgba(0,0,0,0.1)", border: "1px solid #e0dbd3", alignItems: "center" }}>
         <button onClick={onToggleAll} style={{
           padding: "5px 8px", fontSize: 10, fontWeight: 600,

@@ -25,11 +25,10 @@ export default function WorldMap() {
   const [panelOpen, setPanelOpen] = useState(false);
   const [graphOpen, setGraphOpen] = useState(false);
   const [choroplethMetric, setChoroplethMetric] = useState("none");
-  const [stockSource, setStockSource] = useState("ims");
   const [mapSize, setMapSize] = useState({ width: innerWidth, height: innerHeight });
 
   const PERIODS = intervalMode === "10yr" ? PERIODS_10YR : PERIODS_5YR;
-  const { migrationData, chartData, mData, chartInfo, confidence, confidenceMeta, sourceLabels, availableSources } = useMapData(intervalMode, selectedPeriods, selected, stockSource);
+  const { migrationData, chartData, mData, chartInfo, confidence } = useMapData(intervalMode, selectedPeriods, selected);
   const choroplethColors = useMapColors(choroplethMetric, migrationData, chartData, selectedPeriods);
 
   // period helpers
@@ -224,9 +223,7 @@ export default function WorldMap() {
 
         <PeriodSelector selectedPeriods={selectedPeriods} onTogglePeriod={togglePeriod}
           onToggleAll={toggleAllPeriods} intervalMode={intervalMode}
-          onIntervalChange={switchInterval} periods={PERIODS}
-          stockSource={stockSource} onStockSourceChange={setStockSource}
-          sourceLabels={sourceLabels} availableSources={availableSources} />
+          onIntervalChange={switchInterval} periods={PERIODS} />
         <HoverTooltip countryName={hovered ? getName(hovered) : null} />
         <ClickHint visible={!selected} />
       </div>
@@ -234,7 +231,7 @@ export default function WorldMap() {
       <CountryPanel selected={selected} panelOpen={panelOpen} onClose={() => setPanelOpen(false)}
         periodLabel={periodLabel} sortedPeriods={sortedPeriods} selectedPeriods={selectedPeriods}
         mData={mData} chartInfo={chartInfo} intervalMode={intervalMode}
-        confidence={confidence} confidenceMeta={confidenceMeta} />
+        confidence={confidence} />
 
       <GraphBuilder open={graphOpen} onClose={() => setGraphOpen(false)} selected={selected}
         chartInfo={chartInfo} migrationData={migrationData} intervalMode={intervalMode}

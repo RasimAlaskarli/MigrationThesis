@@ -4,3 +4,15 @@ dist/
 *.local
 scripts/*.csv
 scripts/*.csv
+
+# Source CSVs — too large for git, keep locally
+scripts/gf_imr.csv
+scripts/bilat_mig.csv
+
+# Pipeline intermediates — regenerable from CSVs via the pipeline scripts
+scripts/combined_flows.json
+scripts/definitive_flows.json
+scripts/confidenceMap.json
+
+# Stray app JSONs written by the pipeline — the committed copies live in src/data/
+scripts/migrationData_*.json

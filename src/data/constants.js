@@ -1,6 +1,6 @@
 // Time periods available in the dataset
-export const PERIODS_5YR = ["1960", "1965", "1970", "1975", "1980", "1985", "1990", "1995", "2000", "2005", "2010"];
-export const PERIODS_10YR = ["1960", "1970", "1980", "1990", "2000", "2010"];
+export const PERIODS_5YR  = ["1960", "1965", "1970", "1975", "1980", "1985", "1990", "1995", "2000", "2005"];
+export const PERIODS_10YR = ["1960", "1970", "1980", "1990", "2000"];
 export const PERIODS = PERIODS_5YR; // default
 
 // Historical country codes mapped to their modern successor state on the map

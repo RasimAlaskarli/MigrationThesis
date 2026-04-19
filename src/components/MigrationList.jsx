@@ -1,14 +1,20 @@
 import { formatNum, getName } from "../utils/formatters";
 
 const CONFIDENCE_STYLES = {
-  unreliable: {
-    color: "#c44e52",
-    label: "Unreliable — discrepancy (≥5×) between data sources",
-    icon: "⚠"
+  high_confidence: null, // no badge — clean display
+  moderate_confidence: {
+    color: "#e0a020",
+    label: "Moderate confidence — some disagreement among retained estimates",
+    icon: "●"
   },
-  "no-reference": {
+  low_confidence: {
+    color: "#c44e52",
+    label: "Low confidence — broad disagreement among retained estimates",
+    icon: "●"
+  },
+  insufficient_evidence: {
     color: "#8a857a",
-    label: "No reference — not present in other data sources",
+    label: "Insufficient evidence — too few retained values above threshold",
     icon: "?"
   },
 };
@@ -19,18 +25,38 @@ function buildConfidenceKey(direction, selected, code) {
     : `${selected}-${code}`;
 }
 
-function buildConfidenceTitle(confidenceMeta, key, fallbackLabel) {
-  const evidence = confidenceMeta?.evidence?.[key];
-  if (!evidence) return fallbackLabel;
+function getWorstConfidence(levels) {
+  if (!levels.length) return null;
 
-  if (evidence.method === "source_ratio") {
-    return `${fallbackLabel} — ${evidence.sources[0]} vs ${evidence.sources[1]} differs by ${evidence.ratio}x in ${evidence.year}`;
-  }
+  const rank = {
+    high_confidence: 1,
+    moderate_confidence: 2,
+    low_confidence: 3,
+    insufficient_evidence: 4,
+  };
 
-  return fallbackLabel;
+  return [...levels].sort((a, b) => (rank[b] || 0) - (rank[a] || 0))[0];
 }
 
-export default function MigrationList({ items, color, total, confidence, confidenceMeta, direction, selected }) {
+function buildConfidenceTitle(confidence, key, fallbackLabel, selectedPeriods) {
+  const periods = selectedPeriods ? [...selectedPeriods] : [];
+  const years = periods.filter(p => confidence?.[p]?.[key]);
+
+  if (!years.length) return fallbackLabel;
+  if (years.length === 1) return `${fallbackLabel} — ${years[0]}`;
+
+  return `${fallbackLabel} — ${years.join(", ")}`;
+}
+
+export default function MigrationList({
+  items,
+  color,
+  total,
+  confidence,
+  direction,
+  selected,
+  selectedPeriods
+}) {
   if (!items?.length) {
     return <div style={{ color: "#8a857a", fontSize: 13, fontStyle: "italic", padding: "8px 0" }}>No data</div>;
   }
@@ -40,7 +66,14 @@ export default function MigrationList({ items, color, total, confidence, confide
   function getConfidence(code) {
     if (!confidence) return null;
     const key = buildConfidenceKey(direction, selected, code);
-    return confidence[key] || null;
+
+    const levels = [];
+    for (const period of selectedPeriods || []) {
+      const level = confidence?.[period]?.[key];
+      if (level) levels.push(level);
+    }
+
+    return getWorstConfidence(levels);
   }
 
   return (
@@ -50,7 +83,7 @@ export default function MigrationList({ items, color, total, confidence, confide
         const key = buildConfidenceKey(direction, selected, code);
         const conf = getConfidence(code);
         const style = conf ? CONFIDENCE_STYLES[conf] : null;
-        const title = style ? buildConfidenceTitle(confidenceMeta, key, style.label) : "";
+        const title = style ? buildConfidenceTitle(confidence, key, style.label, selectedPeriods) : "";
 
         return (
           <div key={code} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13 }}>
@@ -83,7 +116,7 @@ export default function MigrationList({ items, color, total, confidence, confide
                   height: 3,
                   background: color,
                   borderRadius: 2,
-                  width: (val / peak * 100) + "%",
+                  width: `${(val / peak) * 100}%`,
                   opacity: 1
                 }} />
               </div>
