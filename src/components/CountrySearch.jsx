@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useLayoutEffect } from "react";
 import { CODE_TO_NAME } from "../data/constants";
 import { formatNum, getName } from "../utils/formatters";
 
@@ -37,10 +37,24 @@ export default function CountrySearch({
   selected,
   mData,
   confidence,
-  selectedPeriods
+  selectedPeriods,
+  demoPick
 }) {
   const [query, setQuery] = useState("");
   const [picked, setPicked] = useState(null);
+
+  // Tour-driven demonstration: when `demoPick` is set, pre-select that
+  // country so the tour can spotlight the resulting bilateral flow card.
+  useLayoutEffect(() => {
+    if (demoPick) {
+      setPicked(demoPick);
+      setQuery(getName(demoPick));
+    } else {
+      // Cleared after the tour moves past the bilateral demo step.
+      setPicked(null);
+      setQuery("");
+    }
+  }, [demoPick]);
 
   const codes = useMemo(() =>
     Object.keys(CODE_TO_NAME)
@@ -103,27 +117,29 @@ export default function CountrySearch({
         Bilateral Flow
       </div>
 
-      <input
-        type="text"
-        value={query}
-        onChange={e => {
-          setQuery(e.target.value);
-          setPicked(null);
-        }}
-        placeholder="Search country..."
-        style={{
-          width: "100%",
-          padding: "8px 12px",
-          borderRadius: 6,
-          border: "1px solid #d5d0c4",
-          fontSize: 13,
-          fontFamily: "'Source Sans 3', sans-serif",
-          background: "#faf9f6",
-          outline: "none",
-          boxSizing: "border-box",
-          color: "#3d3a35"
-        }}
-      />
+      <div data-tour-id="bilateral-search">
+        <input
+          type="text"
+          value={query}
+          onChange={e => {
+            setQuery(e.target.value);
+            setPicked(null);
+          }}
+          placeholder="Search country..."
+          style={{
+            width: "100%",
+            padding: "8px 12px",
+            borderRadius: 6,
+            border: "1px solid #d5d0c4",
+            fontSize: 13,
+            fontFamily: "'Source Sans 3', sans-serif",
+            background: "#faf9f6",
+            outline: "none",
+            boxSizing: "border-box",
+            color: "#3d3a35"
+          }}
+        />
+      </div>
 
       {query && !picked && (
         <div
@@ -161,7 +177,7 @@ export default function CountrySearch({
       )}
 
       {flow && picked && (
-        <div style={{ marginTop: 10 }}>
+        <div data-tour-id="bilateral-result" style={{ marginTop: 10 }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
             <div style={{ padding: "8px 12px", borderRadius: 6, border: "1px solid #e8e4dc", background: "#faf9f6" }}>
               <div style={{ fontSize: 10, color: "#8a857a", textTransform: "uppercase" }}>

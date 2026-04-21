@@ -40,7 +40,15 @@ export default function LineChart({ data, label, unit, color, selectedPeriods, i
     return { v, y: yOf(v) };
   });
 
-  const fmt = v => v < 10 ? v.toFixed(1) : Math.round(v).toString();
+  const fmt = v => {
+    const abs = Math.abs(v);
+    const sign = v < 0 ? "-" : "";
+    if (abs >= 1e9) return sign + (abs / 1e9).toFixed(1) + "B";
+    if (abs >= 1e6) return sign + (abs / 1e6).toFixed(1) + "M";
+    if (abs >= 1e3) return sign + (abs / 1e3).toFixed(1) + "K";
+    if (abs < 10) return v.toFixed(1);
+    return Math.round(v).toString();
+  };
 
   return (
     <div style={{ marginBottom: 16 }}>

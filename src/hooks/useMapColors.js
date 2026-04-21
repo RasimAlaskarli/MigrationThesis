@@ -11,6 +11,28 @@ import { HISTORICAL_TO_MODERN } from "../data/constants";
 export default function useMapColors(metric, migrationData, chartData, selectedPeriods) {
   return useMemo(() => {
     if (metric === "none") return {};
+    if (metric === "countryColors") {
+      const palette = [
+        "#d9c27a", "#91b7a7", "#d78f6a", "#889fbd", "#b79ac8",
+        "#7fb0c9", "#c9a66b", "#9eb77c", "#d7a7b8", "#8fa68a",
+        "#c58d86", "#9a95c7", "#7fb7a1", "#d5b982", "#a7a2d6"
+      ];
+      const colors = {};
+      const codeHash = code => [...code].reduce((acc, ch) => acc * 33 + ch.charCodeAt(0), 7);
+
+      // Use the country codes present in the loaded datasets so this mode
+      // covers the same map population as the data-backed choropleths.
+      const codes = new Set([
+        ...Object.keys(chartData || {}),
+        ...Object.values(migrationData || {}).flatMap(period => Object.keys(period || {}))
+      ]);
+
+      for (const rawCode of codes) {
+        const code = HISTORICAL_TO_MODERN[rawCode] || rawCode;
+        colors[code] = palette[codeHash(code) % palette.length];
+      }
+      return colors;
+    }
 
     const values = {};
 
@@ -24,28 +46,9 @@ export default function useMapColors(metric, migrationData, chartData, selectedP
           values[mapped] = (values[mapped] || 0) + (d.ti || 0) - (d.to || 0);
         }
       }
-    } else if (metric === "totalImmigration" && migrationData) {
-      for (const p of selectedPeriods) {
-        const pd = migrationData[p];
-        if (!pd) continue;
-        for (const [code, d] of Object.entries(pd)) {
-          const mapped = HISTORICAL_TO_MODERN[code] || code;
-          values[mapped] = (values[mapped] || 0) + (d.ti || 0);
-        }
-      }
-    } else if (metric === "totalEmigration" && migrationData) {
-      for (const p of selectedPeriods) {
-        const pd = migrationData[p];
-        if (!pd) continue;
-        for (const [code, d] of Object.entries(pd)) {
-          const mapped = HISTORICAL_TO_MODERN[code] || code;
-          values[mapped] = (values[mapped] || 0) + (d.to || 0);
-        }
-      }
-
     // demographic metrics from chartData
     } else if (chartData) {
-      const key = { unemployment: "unemployment", urbanization: "urbanization", medianAge: "medianAge" }[metric];
+      const key = { unemployment: "unemployment", urbanization: "urbanization", medianAge: "medianAge", population: "population" }[metric];
       if (key) {
         for (const [code, d] of Object.entries(chartData)) {
           if (!d[key]) continue;
@@ -80,8 +83,9 @@ export default function useMapColors(metric, migrationData, chartData, selectedP
       const lo = d3.quantile(numericVals, 0.05);
       const hi = d3.quantile(numericVals, 0.95);
       const palette =
-        (metric === "unemployment" || metric === "totalEmigration") ? ["#fef0e4", "#c2703e"] :
-        (metric === "urbanization" || metric === "totalImmigration") ? ["#eef4ef", "#2d6a3f"] :
+        metric === "unemployment" ? ["#fef0e4", "#c2703e"] :
+        metric === "urbanization" ? ["#eef4ef", "#2d6a3f"] :
+        metric === "population" ? ["#f4efe7", "#7e5b3d"] :
         ["#eef1f4", "#3d5a72"];
       const scale = d3.scaleLinear().domain([lo, hi]).range(palette).clamp(true);
       for (const [code, val] of Object.entries(values)) colors[code] = scale(val);

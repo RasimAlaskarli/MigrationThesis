@@ -1,12 +1,11 @@
 import { useState, useMemo } from "react";
-import { getName } from "../utils/formatters";
+import { getFlagEmoji, getName } from "../utils/formatters";
 
 const VARS = [
   { key: "unemployment", label: "Unemployment", unit: "%", color: "#c2703e" },
   { key: "urbanization", label: "Urbanization", unit: "%", color: "#5a8a6a" },
   { key: "medianAge",    label: "Median Age",   unit: "yrs", color: "#6a7b8a" },
-  { key: "immigration",  label: "Immigration",  unit: "", color: "#4878a8" },
-  { key: "emigration",   label: "Emigration",   unit: "", color: "#c44e52" },
+  { key: "population",   label: "Population",   unit: "", color: "#8a6a7b" },
   { key: "netMigration", label: "Net Migration", unit: "", color: "#8a6a7b" },
 ];
 
@@ -15,6 +14,7 @@ function fmtVal(v, unit) {
   if (v == null) return "—";
   const abs = Math.abs(v);
   const sign = v < 0 ? "-" : "";
+  if (abs >= 1e9) return sign + (abs / 1e9).toFixed(2) + "B";
   if (abs >= 1e6) return sign + (abs / 1e6).toFixed(2) + "M";
   if (abs >= 1e3) return sign + (abs / 1e3).toFixed(1) + "K";
   if (unit === "%" || unit === "yrs") return v.toFixed(1) + (unit === "%" ? "%" : " yrs");
@@ -24,6 +24,7 @@ function fmtVal(v, unit) {
 function fmtTick(v) {
   const abs = Math.abs(v);
   const sign = v < 0 ? "-" : "";
+  if (abs >= 1e9) return sign + (abs / 1e9).toFixed(1) + "B";
   if (abs >= 1e6) return sign + (abs / 1e6).toFixed(1) + "M";
   if (abs >= 1e3) return sign + (abs / 1e3).toFixed(0) + "K";
   if (abs < 10) return v.toFixed(1);
@@ -130,24 +131,22 @@ export default function GraphBuilder({ open, onClose, selected, chartInfo, migra
   // build migration time series from the raw per-period data
   const migSeries = useMemo(() => {
     if (!migrationData || !selected) return {};
-    const imm = {}, emi = {}, net = {};
+    const net = {};
     for (const p of Object.keys(migrationData)) {
       const d = migrationData[p]?.[selected];
       if (!d) continue;
-      imm[p] = d.ti || 0;
-      emi[p] = d.to || 0;
       net[p] = (d.ti || 0) - (d.to || 0);
     }
-    return { immigration: imm, emigration: emi, netMigration: net };
+    return { netMigration: net };
   }, [migrationData, selected]);
 
   function dataFor(key) {
-    if (key === "immigration" || key === "emigration" || key === "netMigration") return migSeries[key] || {};
+    if (key === "netMigration") return migSeries[key] || {};
     return chartInfo?.[key] || {};
   }
 
   // compute which years to show based on selected periods
-  const isMigVar = k => k === "immigration" || k === "emigration" || k === "netMigration";
+  const isMigVar = k => k === "netMigration";
 
   const chartYears = useMemo(() => {
     const step = intervalMode === "10yr" ? 10 : 5;
@@ -177,7 +176,7 @@ export default function GraphBuilder({ open, onClose, selected, chartInfo, migra
   };
 
   return (
-    <div onMouseDown={e => e.stopPropagation()} onWheel={e => e.stopPropagation()} onTouchStart={e => e.stopPropagation()}
+    <div data-tour-id="graph-builder-panel" onMouseDown={e => e.stopPropagation()} onWheel={e => e.stopPropagation()} onTouchStart={e => e.stopPropagation()}
       style={{
         position: "absolute", top: 0, left: 0, bottom: 0, width: 500,
         transform: open ? "translateX(0)" : "translateX(-100%)",
@@ -192,7 +191,10 @@ export default function GraphBuilder({ open, onClose, selected, chartInfo, migra
       <div style={{ padding: "16px 20px 12px", borderBottom: "1px solid #e8e4dc", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
         <div>
           <div style={{ fontFamily: "'Source Serif 4', serif", fontSize: 18, fontWeight: 600 }}>Graph Builder</div>
-          <div style={{ fontSize: 12, color: "#8a857a", marginTop: 2 }}>{selected ? getName(selected) : "Select a country on the map"}</div>
+          <div style={{ fontSize: 12, color: "#8a857a", marginTop: 2, display: "flex", alignItems: "center", gap: 6 }}>
+            {selected && getFlagEmoji(selected) && <span style={{ fontSize: 14, lineHeight: 1 }}>{getFlagEmoji(selected)}</span>}
+            <span>{selected ? getName(selected) : "Select a country on the map"}</span>
+          </div>
         </div>
         <button onClick={onClose} style={{ background: "none", border: "none", fontSize: 18, color: "#8a857a", cursor: "pointer", padding: 4 }}>✕</button>
       </div>

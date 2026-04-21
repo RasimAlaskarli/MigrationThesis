@@ -84,7 +84,11 @@ export const CODE_TO_NAME = {
   "YEM": "Yemen", "ZAF": "South Africa", "ZMB": "Zambia", "ZWE": "Zimbabwe",
   "ANT": "Netherlands Antilles", "ALA": "Aland Islands", "ESH": "Western Sahara",
   "MAF": "Saint Martin", "PCN": "Pitcairn Islands", "SUD": "Sudan",
-  "CHL": "Chile", "MLI": "Mali", "CHI": "Channel Islands"
+  "CHL": "Chile", "MLI": "Mali", "CHI": "Channel Islands",
+  "FRO": "Faroe Islands", "CYM": "Cayman Islands", "IOT": "British Indian Ocean Territory",
+  "SGS": "South Georgia and the South Sandwich Islands",
+  "ATF": "French Southern Territories", "HMD": "Heard and McDonald Islands", "BLM": "St. Barthélemy"
+  
 };
 
 // TopoJSON numeric IDs to ISO3 codes
@@ -134,7 +138,10 @@ export const NUM_TO_ISO3 = {
   "807": "MKD", "818": "EGY", "826": "GBR", "831": "GGY", "832": "JEY",
   "833": "IMN", "834": "TZA", "840": "USA", "850": "VIR", "854": "BFA",
   "858": "URY", "860": "UZB", "862": "VEN", "876": "WLF", "882": "WSM",
-  "887": "YEM", "894": "ZMB", "-99": "CYN", "10": "ATA"
+  "887": "YEM", "894": "ZMB", "-99": "CYN", "10": "ATA","86": "IOT", "92": "VGB", "136": "CYM", "234": "FRO",
+"239": "SGS", "248": "ALA", "260": "ATF", "334": "HMD",
+"531": "CUW", "533": "ABW", "534": "SXM", "652": "BLM",
+"663": "MAF",
 };
 
 // ISO3 codes to continent
@@ -187,4 +194,4 @@ export const CODE_TO_CONTINENT = {
 export const CONTINENTS = ["All", "Africa", "Asia", "Europe", "North America", "South America", "Oceania"];
 
 // TopoJSON URL for world map
-export const TOPO_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
+export const TOPO_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json";

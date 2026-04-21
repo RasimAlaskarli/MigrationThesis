@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { CONTINENTS, CODE_TO_CONTINENT } from "../data/constants";
-import { formatNum, getName } from "../utils/formatters";
+import { formatNum, getFlagEmoji, getName } from "../utils/formatters";
 import LineChart from "./LineChart";
 import MigrationList from "./MigrationList";
 import CountrySearch from "./CountrySearch";
@@ -62,10 +62,20 @@ function ConfidenceLegend({ hasConfidence }) {
 
 export default function CountryPanel({
   selected, panelOpen, onClose, periodLabel, sortedPeriods,
-  selectedPeriods, mData, chartInfo, intervalMode, confidence
+  selectedPeriods, mData, chartInfo, intervalMode, confidence,
+  tab: tabProp, onTabChange, direction: directionProp, onDirectionChange,
+  bilateralDemoPick
 }) {
-  const [tab, setTab] = useState("stats");
-  const [direction, setDirection] = useState("in");
+  const [tabInternal, setTabInternal] = useState("stats");
+  const [directionInternal, setDirectionInternal] = useState("in");
+
+  // Allow the parent to control tab/direction (so the map's FlowArcs stays in
+  // sync with the panel), but fall back to internal state when uncontrolled.
+  const tab = tabProp !== undefined ? tabProp : tabInternal;
+  const setTab = onTabChange || setTabInternal;
+  const direction = directionProp !== undefined ? directionProp : directionInternal;
+  const setDirection = onDirectionChange || setDirectionInternal;
+
   const [continent, setContinent] = useState("All");
 
   const showConfidence = useMemo(() => {
@@ -104,6 +114,7 @@ export default function CountryPanel({
     unemployment: metricInfo("unemployment"),
     urbanization: metricInfo("urbanization"),
     medianAge: metricInfo("medianAge"),
+    population: metricInfo("population"),
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }), [chartInfo, selectedPeriods, intervalMode]);
 
@@ -142,7 +153,7 @@ export default function CountryPanel({
   };
 
   return (
-    <div {...stopProp} style={{
+    <div {...stopProp} data-tour-id="country-panel" style={{
       position: "absolute",
       top: 0,
       right: 0,
@@ -163,7 +174,10 @@ export default function CountryPanel({
         <>
           <div style={{ padding: "16px 20px 12px", borderBottom: "1px solid #e8e4dc", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
             <div>
-              <div style={{ fontFamily: "'Source Serif 4', serif", fontSize: 20, fontWeight: 600 }}>{getName(selected)}</div>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, fontFamily: "'Source Serif 4', serif", fontSize: 20, fontWeight: 600 }}>
+                {getFlagEmoji(selected) && <span style={{ fontSize: 22, lineHeight: 1 }}>{getFlagEmoji(selected)}</span>}
+                <span>{getName(selected)}</span>
+              </div>
               <div style={{ fontSize: 12, color: "#8a857a", marginTop: 2 }}>
                 {periodLabel} · {sortedPeriods.length > 1 ? `${sortedPeriods.length} periods combined` : `${intervalMode === "10yr" ? "10" : "5"}-year period`}
               </div>
@@ -202,12 +216,13 @@ export default function CountryPanel({
                   <StatCard label="Unemployment" value={metrics.unemployment.value} change={metrics.unemployment.change} unit="%" color="#c2703e" />
                   <StatCard label="Urbanization" value={metrics.urbanization.value} change={metrics.urbanization.change} unit="%" color="#5a8a6a" />
                   <StatCard label="Median Age" value={metrics.medianAge.value} change={metrics.medianAge.change} unit="" color="#6a7b8a" />
-                  <StatCard label="Net Migration" value={net} color="#8a6a7b" prefix={net != null && net >= 0 ? "+" : ""} />
+                  <StatCard label="Population" value={metrics.population.value} change={metrics.population.change} unit="" color="#8a6a7b" />
                 </div>
 
                 <LineChart data={chartInfo?.unemployment} label="Unemployment" unit="%" color="#c2703e" selectedPeriods={selectedPeriods} intervalMode={intervalMode} />
                 <LineChart data={chartInfo?.urbanization} label="Urbanization" unit="%" color="#5a8a6a" selectedPeriods={selectedPeriods} intervalMode={intervalMode} />
                 <LineChart data={chartInfo?.medianAge} label="Median Age" unit="years" color="#6a7b8a" selectedPeriods={selectedPeriods} intervalMode={intervalMode} />
+                <LineChart data={chartInfo?.population} label="Population" unit="" color="#8a6a7b" selectedPeriods={selectedPeriods} intervalMode={intervalMode} />
               </>
             )}
 
@@ -226,6 +241,7 @@ export default function CountryPanel({
                   mData={mData}
                   confidence={showConfidence ? confidence : null}
                   selectedPeriods={selectedPeriods}
+                  demoPick={bilateralDemoPick}
                 />
 
                 <div style={{ display: "flex", gap: 4, marginBottom: 12 }}>

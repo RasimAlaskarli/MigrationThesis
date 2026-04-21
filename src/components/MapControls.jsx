@@ -35,7 +35,7 @@ export function PeriodSelector({
   });
 
   return (
-    <div style={{ position: "absolute", bottom: 20, left: "50%", transform: "translateX(-50%)", display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
+    <div data-tour-id="period-selector" style={{ position: "absolute", bottom: 20, left: "50%", transform: "translateX(-50%)", display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
       <div style={{ display: "flex", gap: 2, background: "#fff", padding: 4, borderRadius: 8, boxShadow: "0 1px 6px rgba(0,0,0,0.1)", border: "1px solid #e0dbd3", alignItems: "center" }}>
         <button onClick={onToggleAll} style={{
           padding: "5px 8px", fontSize: 10, fontWeight: 600,
@@ -71,21 +71,21 @@ export function PeriodSelector({
 export function ChoroplethSelector({ value, onChange, panelOpen }) {
   const stops = {
     netMigration:     ["#c44e52", "#e8a8a9", "#f5f2ed", "#8fb3cf", "#4878a8"],
-    totalImmigration: ["#eef4ef", "#6aad7a", "#2d6a3f"],
-    totalEmigration:  ["#fef0e4", "#daa070", "#c2703e"],
+    population:       ["#f4efe7", "#c6a06d", "#7e5b3d"],
     unemployment:     ["#fef0e4", "#daa070", "#c2703e"],
     urbanization:     ["#eef4ef", "#6aad7a", "#2d6a3f"],
     medianAge:        ["#eef1f4", "#7a9ab0", "#3d5a72"]
   };
   const labels = {
     netMigration: ["Emigration", "Immigration"],
-    totalImmigration: ["Low", "High"], totalEmigration: ["Low", "High"],
+    population: ["Low", "High"],
     unemployment: ["Low", "High"], urbanization: ["Low", "High"],
     medianAge: ["Young", "Old"]
   };
+  const showLegend = value !== "none" && value !== "countryColors";
 
   return (
-    <div style={{
+    <div data-tour-id="choropleth-selector" style={{
       position: "absolute", top: 16, right: panelOpen ? 450 : 20,
       transition: "right 0.35s cubic-bezier(0.4,0,0.2,1)",
       background: "#fff", padding: "8px 12px", borderRadius: 8,
@@ -98,15 +98,15 @@ export function ChoroplethSelector({ value, onChange, panelOpen }) {
         color: "#3d3a35", cursor: "pointer", outline: "none"
       }}>
         <option value="none">None</option>
+        <option value="countryColors">Political map</option>
         <option value="netMigration">Net migration</option>
-        <option value="totalImmigration">Total immigration</option>
-        <option value="totalEmigration">Total emigration</option>
+        <option value="population">Population</option>
         <option value="unemployment">Unemployment</option>
         <option value="urbanization">Urbanization</option>
         <option value="medianAge">Median age</option>
       </select>
 
-      {value !== "none" && (
+      {showLegend && (
         <div style={{ marginTop: 8 }}>
           <div style={{ height: 8, borderRadius: 4, width: "100%", minWidth: 120, background: `linear-gradient(to right, ${stops[value].join(", ")})` }} />
           <div style={{ display: "flex", justifyContent: "space-between", marginTop: 3 }}>
@@ -134,9 +134,22 @@ export function HoverTooltip({ countryName }) {
 export function ClickHint({ visible }) {
   if (!visible) return null;
   return (
-    <div style={{
-      position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)",
-      color: "#a9a49a", fontSize: 14, fontStyle: "italic", pointerEvents: "none", textAlign: "center"
-    }}>Click any country to explore</div>
+    <>
+      <style>{`
+        @keyframes tourHintPulse {
+          0%, 100% { opacity: 0.55; }
+          50%      { opacity: 1; }
+        }
+      `}</style>
+      <div style={{
+        position: "absolute", top: "38%", left: "50%", transform: "translate(-50%, -50%)",
+        color: "#3d3a35", fontSize: 20, fontStyle: "italic",
+        pointerEvents: "none", fontFamily: "'Source Serif 4', serif",
+        textAlign: "center", lineHeight: 1.5, maxWidth: 540,
+        animation: "tourHintPulse 2s ease-in-out infinite"
+      }}>
+        New here? Click the <b style={{ fontStyle: "normal" }}>i</b> button on the top left — otherwise, select a country.
+      </div>
+    </>
   );
 }
