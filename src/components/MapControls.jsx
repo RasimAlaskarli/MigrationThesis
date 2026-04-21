@@ -141,6 +141,37 @@ export function ClickHint({ visible }) {
           50%      { opacity: 1; }
         }
       `}</style>
+      <svg
+        width="350"
+        height="300"
+        viewBox="7 0 350 300"
+        style={{
+          position: "absolute",
+          top: "31%",
+          left: "22%",
+          transform: "translate(-50%, -50%)",
+          overflow: "visible",
+          pointerEvents: "none",
+          animation: "tourHintPulse 2s ease-in-out infinite"
+        }}
+      >
+        <path
+          d="M322 220 L118 220 L118 26"
+          fill="none"
+          stroke="#8a857a"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M108 40 L118 26 L128 40"
+          fill="none"
+          stroke="#8a857a"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
       <div style={{
         position: "absolute", top: "38%", left: "50%", transform: "translate(-50%, -50%)",
         color: "#3d3a35", fontSize: 20, fontStyle: "italic",
@@ -148,7 +179,25 @@ export function ClickHint({ visible }) {
         textAlign: "center", lineHeight: 1.5, maxWidth: 540,
         animation: "tourHintPulse 2s ease-in-out infinite"
       }}>
-        New here? Click the <b style={{ fontStyle: "normal" }}>i</b> button on the top left — otherwise, select a country.
+        New here? Click the{" "}
+        <span style={{
+          display: "inline-flex",
+          width: 22,
+          height: 22,
+          borderRadius: "50%",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "#fff",
+          color: "#3d3a35",
+          border: "1px solid #c4bfb4",
+          boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+          fontStyle: "normal",
+          fontSize: 13,
+          fontWeight: 600,
+          verticalAlign: "middle",
+          margin: "0 4px"
+        }}>i</span>
+        on the top left — otherwise, select a country.
       </div>
     </>
   );
